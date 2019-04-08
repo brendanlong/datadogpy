@@ -140,6 +140,18 @@ class TestDogStatsd(unittest.TestCase):
         # Assert
         t.assert_equal(statsd.host, "172.17.0.1")
 
+    def test_default_route_with_env_var(self):
+        """
+        Dogstatsd host can be dynamically set to the default route.
+        """
+        # Setup
+        with preserve_environment_variable('DD_USE_DEFAULT_ROUTE'):
+            os.environ['DD_USE_DEFAULT_ROUTE'] = 'true'
+            statsd = DogStatsd()
+
+        # Assert
+        t.assert_equal(statsd.host, "172.17.0.1")
+
     def test_set(self):
         self.statsd.set('set', 123)
         assert self.recv() == 'set:123|s'

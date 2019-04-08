@@ -44,6 +44,10 @@ class DogStatsd(object):
         If set, it overrides default value.
         :type DD_DOGSTATSD_PORT: integer
 
+        :envvar DD_USE_DEFAULT_ROUTE: Dynamically set the DogStatsd host to the default route
+        If set, it overrides default value.
+        :type DD_USE_DEFAULT_ROUTE: boolean
+
         :param host: the host of the DogStatsd server.
         :type host: string
 
@@ -80,7 +84,7 @@ class DogStatsd(object):
 
         self.lock = Lock()
 
-        # Check host and port env vars
+        # Check env vars
         agent_host = os.environ.get('DD_AGENT_HOST')
         if agent_host and host == DEFAULT_HOST:
             host = agent_host
@@ -92,6 +96,17 @@ class DogStatsd(object):
             except ValueError:
                 log.warning("Port number provided in DD_DOGSTATSD_PORT env var is not an integer: \
                 %s, using %s as port number", dogstatsd_port, port)
+
+        env_use_default_route = os.environ.get("DD_USE_DEFAULT_ROUTE")
+        if use_default_route is None and env_use_default_route is not None:
+            true_values = ("1", "true")
+            use_default_route = env_use_default_route.lower() in true_values
+            allowed_values = true_values + ("0", "false")
+            if env_use_default_route not in allowed_values:
+                log.warning(
+                    "DD_USE_DEFAULT_ROUTE has unexpected value %s, allowed "
+                    "values are %s, using default value %s",
+                    env_use_default_route, allowed_values, use_default_route)
 
         # Connection
         if socket_path is not None:
